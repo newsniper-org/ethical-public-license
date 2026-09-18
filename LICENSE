@@ -26,7 +26,7 @@
 부속물
 
   tools/render.py 와 justfile (생성기·빌드 스크립트)
-      MIT License, Copyright (c) 2026 윤병익 (尹炳翼)
+      MIT License, Copyright (c) 2026 NEWSNIPER
 
       Permission is hereby granted, free of charge, to any person obtaining a
       copy of this software and associated documentation files (the "Software"),

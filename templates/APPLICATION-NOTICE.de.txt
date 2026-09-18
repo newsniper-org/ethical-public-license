@@ -1,0 +1,53 @@
+NEWSNIPER Ethical Public License v1 (NEPLv1) — Anwendungshinweis
+================================================================================
+Füllen Sie dieses Formular aus und legen Sie es als LICENSE (oder NOTICE) im
+Wurzelverzeichnis ab. Nicht ausgefüllte Punkte gelten als „keine".
+Das Format ist frei (Ziffer 12.1).
+--------------------------------------------------------------------------------
+
+Werk                  <Name / Repository>
+Lizenzgeber           <Name oder Organisation>  <Kontakt (optional)>
+Urheberrecht          Copyright (c) <Jahr> <Name>
+Version               NEPLv1        (oder „NEPLv1 oder jede spätere Version")
+Volltext der Lizenz   <Pfad>   z. B. LICENSES/NEPL-v1.ko.md
+                      (beliebig viele Sprachen/Formate beifügbar)
+
+Vorbestehendes Werk   <falls vorhanden: Titel · Urheber · Rechteinhaber>
+                      <sonst „keines" — dann finden Ziffern 4 und 6 keine
+                       Anwendung>
+
+Gesondert lizenzierte Teile
+                      <Pfad> — <Lizenz> (<Rechteinhaber>)
+                      <Pfad> — <Lizenz> (<Rechteinhaber>)
+                      ...
+
+Kommerzielle Nutzung des Text-Teils
+                      nicht gestattet (Standard, Ziffer 2.2)  |  gestattet
+
+Anwendbares Recht     <Staat>            (ohne Angabe: Republik Korea)
+
+--------------------------------------------------------------------------------
+Abgrenzung der Teile (Ziffer 1.2 Software-Teil / Ziffer 1.3 Text-Teil)
+
+  Software-Teil (kommerzielle Nutzung erlaubt, keine Weitergabepflicht)
+      <Pfade>
+
+  Text-Teil (nur nicht kommerziell, Weitergabe unter gleichen Bedingungen)
+      <Pfade>
+
+--------------------------------------------------------------------------------
+Verbotene Nutzungen (Ziffer 5) — keine Befugnis aus dieser Lizenz erstreckt
+sich auf:
+  (a) Verbrechen gegen die Menschlichkeit (Römisches Statut Art. 7)
+  (b) Kriegsverbrechen (Art. 8) · Völkermord (Art. 6) · Aggression (Art. 8 bis)
+  (c) Straftaten, deren Opfer eine Person unter 18 Jahren ist
+Wissenschaft, Berichterstattung, Menschenrechtsdokumentation, Bildung,
+Strafverfolgung sowie die Dokumentation, Aufdeckung, Verhütung oder Ahndung
+dieser Verbrechen sind keine Verbotenen Nutzungen (Ziffer 5.4).
+Keine Angabe in diesem Hinweis kann Ziffer 5 lockern.
+
+--------------------------------------------------------------------------------
+Diese Lizenz ist KEINE „Open-Source"-Lizenz im Sinne der OSI und KEINE „freie
+Software" im Sinne der FSF (Ziffer 0).
+
+SPDX-License-Identifier: LicenseRef-NEPL-1.0

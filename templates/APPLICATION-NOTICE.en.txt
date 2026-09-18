@@ -1,0 +1,49 @@
+NEWSNIPER Ethical Public License v1 (NEPLv1) — Application Notice
+================================================================================
+Fill this in and place it at the top of the repository as LICENSE (or NOTICE).
+Items left blank are treated as "none". The format is free (clause 12.1).
+--------------------------------------------------------------------------------
+
+Work                 <name / repository>
+Licensor             <name or organisation>  <contact (optional)>
+Copyright            Copyright (c) <year> <name>
+Version              NEPLv1                 (or "NEPLv1 or any later version")
+Full licence text    <path>   e.g. LICENSES/NEPL-v1.ko.md
+                     (enclose as many languages/formats as you like)
+
+Upstream Work        <if any: title · author · rightsholder>
+                     <if none: "none" — clauses 4 and 6 then do not apply>
+
+Separately Licensed Parts
+                     <path> — <licence> (<copyright holder>)
+                     <path> — <licence> (<copyright holder>)
+                     ...
+
+Commercial use of the Textual Part
+                     not permitted (clause 2.2 default)  |  permitted
+
+Governing law        <country>              (if omitted: Republic of Korea)
+
+--------------------------------------------------------------------------------
+Division of the parts (clause 1.2 Software Part / clause 1.3 Textual Part)
+
+  Software Part (commercial use permitted, no share-alike)
+      <paths>
+
+  Textual Part (non-commercial only, share-alike)
+      <paths>
+
+--------------------------------------------------------------------------------
+Prohibited Uses (clause 5) — no permission under this licence extends to:
+  (a) crimes against humanity (Rome Statute art. 7)
+  (b) war crimes (art. 8) · genocide (art. 6) · aggression (art. 8 bis)
+  (c) offences whose victim is a person under 18
+Academic research, journalism, human-rights documentation, education, law
+enforcement, and use to record, expose, prevent or punish those crimes are not
+Prohibited Uses (clause 5.4). Nothing in this Notice can relax clause 5.
+
+--------------------------------------------------------------------------------
+This licence is NOT an "open source" licence as defined by the OSI, and NOT
+"free software" as defined by the FSF (clause 0).
+
+SPDX-License-Identifier: LicenseRef-NEPL-1.0

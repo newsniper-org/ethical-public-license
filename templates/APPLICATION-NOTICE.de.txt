@@ -1,19 +1,24 @@
 NEWSNIPER Ethical Public License v1 (NEPLv1) — Anwendungshinweis
 ================================================================================
 Füllen Sie dieses Formular aus und legen Sie es als LICENSE (oder NOTICE) im
-Wurzelverzeichnis ab. Nicht ausgefüllte Punkte gelten als „keine".
+Wurzelverzeichnis ab. Nicht ausgefüllte Punkte gelten als „keine“.
 Das Format ist frei (Ziffer 12.1).
 --------------------------------------------------------------------------------
 
 Werk                  <Name / Repository>
-Lizenzgeber           <Name oder Organisation>  <Kontakt (optional)>
+Lizenzgeber           <Name oder Organisation>
+Mitteilungen an       <Anschrift oder E-Mail>  (wohin eine Mitteilung nach
+                                                Ziffer 8.2.1 gelangt)
 Urheberrecht          Copyright (c) <Jahr> <Name>
-Version               NEPLv1        (oder „NEPLv1 oder jede spätere Version")
+Fassung               NEPLv1
+                      Hinweis: Eine Wahlmöglichkeit wie „oder eine spätere
+                      Fassung“ gibt es nicht (Ziffer 10.2). Für einen Wechsel
+                      ist dieser Hinweis zu ändern und neu zu verbreiten.
 Volltext der Lizenz   <Pfad>   z. B. LICENSES/NEPL-v1.ko.md
                       (beliebig viele Sprachen/Formate beifügbar)
 
 Vorbestehendes Werk   <falls vorhanden: Titel · Urheber · Rechteinhaber>
-                      <sonst „keines" — dann finden Ziffern 4 und 6 keine
+                      <sonst „keines“ — dann finden Ziffern 4 und 6 keine
                        Anwendung>
 
 Gesondert lizenzierte Teile
@@ -21,8 +26,16 @@ Gesondert lizenzierte Teile
                       <Pfad> — <Lizenz> (<Rechteinhaber>)
                       ...
 
+Von der Rechtseinräumung ausgenommen
+                      <Pfad oder Bedingung>   (Ziffer 1.1 — kann entfallen)
+
 Kommerzielle Nutzung des Text-Teils
                       nicht gestattet (Standard, Ziffer 2.2)  |  gestattet
+
+Gleiche Bedingungen (Ziffer 3.3)
+                      gilt nicht (Standard)   |  gilt
+                      Hinweis: eine optionale Bedingung. Ohne den Eintrag
+                      „gilt“ bindet sie nicht.
 
 Anwendbares Recht     <Staat>            (ohne Angabe: Republik Korea)
 
@@ -32,22 +45,29 @@ Abgrenzung der Teile (Ziffer 1.2 Software-Teil / Ziffer 1.3 Text-Teil)
   Software-Teil (kommerzielle Nutzung erlaubt, keine Weitergabepflicht)
       <Pfade>
 
-  Text-Teil (nur nicht kommerziell, Weitergabe unter gleichen Bedingungen)
-      <Pfade>
+  Hinweis: Jede hier nicht aufgeführte Datei ist Text-Teil (Ziffer 1.3.1).
+  Eine Datei, deren Einordnung unklar ist, gilt als Text-Teil.
 
 --------------------------------------------------------------------------------
 Verbotene Nutzungen (Ziffer 5) — keine Befugnis aus dieser Lizenz erstreckt
 sich auf:
   (a) Verbrechen gegen die Menschlichkeit (Römisches Statut Art. 7)
-  (b) Kriegsverbrechen (Art. 8) · Völkermord (Art. 6) · Aggression (Art. 8 bis)
-  (c) Straftaten, deren Opfer eine Person unter 18 Jahren ist
+  (b) Kriegsverbrechen (Art. 8)
+  (c) Völkermord (Art. 6) · Verbrechen der Aggression (Art. 8 bis)
+  (d) Straftaten gegen Personen unter 18 Jahren
+Erfasst sind nicht nur Begehung und Versuch, sondern auch Anordnen,
+Auffordern, Anstiften, Verleiten und Beihilfe.
 Wissenschaft, Berichterstattung, Menschenrechtsdokumentation, Bildung,
-Strafverfolgung sowie die Dokumentation, Aufdeckung, Verhütung oder Ahndung
-dieser Verbrechen sind keine Verbotenen Nutzungen (Ziffer 5.4).
+rechtmäßige Strafverfolgung sowie die Dokumentation, Aufdeckung, Verhütung,
+Ermittlung, Verfolgung oder Ahndung dieser Verbrechen sind keine Verbotenen
+Nutzungen (Ziffer 5.4).
+Dies ist eine Beschränkung des Umfangs der Rechtseinräumung; eine solche
+Nutzung ist daher eine Urheberrechtsverletzung.
 Keine Angabe in diesem Hinweis kann Ziffer 5 lockern.
 
 --------------------------------------------------------------------------------
-Diese Lizenz ist KEINE „Open-Source"-Lizenz im Sinne der OSI und KEINE „freie
-Software" im Sinne der FSF (Ziffer 0).
+Diese Lizenz räumt keinerlei Patentrechte ein (Ziffern 0.3 und 2.6).
+Diese Lizenz ist KEINE „Open-Source“-Lizenz im Sinne der OSI und KEINE „freie
+Software“ im Sinne der FSF (Ziffer 0).
 
-SPDX-License-Identifier: LicenseRef-NEPL-1.0
+SPDX-License-Identifier: LicenseRef-NEPL-1.0   (Empfehlung — Ziffer 12.2)

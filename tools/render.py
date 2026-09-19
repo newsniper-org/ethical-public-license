@@ -70,7 +70,7 @@ def wrap(s: str, width: int = 96) -> list[str]:
 
 
 def parse(md: str) -> list[tuple[str, str]]:
-    """(kind, payload) 블록 목록. kind: h1/h2/p/code/hr"""
+    """(kind, payload) 블록 목록. kind: h1/h2/p/li/code/hr"""
     blocks: list[tuple[str, str]] = []
     buf: list[str] = []
     in_code = False
@@ -106,6 +106,10 @@ def parse(md: str) -> list[tuple[str, str]]:
             if buf:
                 blocks.append(("p", " ".join(buf))); buf = []
             blocks.append(("hr", ""))
+        elif line.strip().startswith("- "):
+            if buf:
+                blocks.append(("p", " ".join(buf))); buf = []
+            blocks.append(("li", line.strip()[2:].strip()))
         else:
             buf.append(line.strip())
     if buf:
@@ -116,7 +120,10 @@ def parse(md: str) -> list[tuple[str, str]]:
 # ---------- 형식별 렌더 ----------
 def render_txt(blocks) -> str:
     o: list[str] = []
+    prev = None
     for kind, s in blocks:
+        if prev == "li" and kind != "li":
+            o += [""]
         if kind == "h1":
             t = plain_inline(s)
             o += ["=" * 78, t, "=" * 78, ""]
@@ -128,8 +135,12 @@ def render_txt(blocks) -> str:
         elif kind == "code":
             o += ["    " + l for l in s.split("\n")]
             o += [""]
+        elif kind == "li":
+            ls = wrap(plain_inline(s), 92)
+            o += ["  - " + ls[0]] + ["    " + l for l in ls[1:]]
         else:
             o += wrap(plain_inline(s)) + [""]
+        prev = kind
     return "\n".join(o).rstrip() + "\n"
 
 
@@ -144,13 +155,18 @@ def render_rst(blocks) -> str:
         s = re.sub(r"`(.+?)`", lambda m: "\\ ``" + m.group(1) + "``\\ ", s)
         s = re.sub(r"\\ (\s)", r"\1", s)      # 이미 공백이면 escaped whitespace 불필요
         s = re.sub(r"(\s)\\ ", r"\1", s)
-        return s.strip()
+        s = s.strip()
+        s = re.sub(r"^\\ +", "", s)           # 블록의 처음·끝에서도 불필요하다
+        return re.sub(r"\\ *$", "", s).rstrip()
 
     def rule(t: str, ch: str) -> str:
         return ch * max(len(t) * 2, 8)
 
     o: list[str] = []
+    prev = None
     for kind, s in blocks:
+        if prev == "li" and kind != "li":
+            o += [""]
         if kind == "h1":
             t = plain_inline(s)
             o += [rule(t, "="), t, rule(t, "="), ""]
@@ -161,8 +177,12 @@ def render_rst(blocks) -> str:
             o += ["..", "", "----", ""]
         elif kind == "code":
             o += ["::", ""] + ["   " + l for l in s.split("\n")] + [""]
+        elif kind == "li":
+            ls = wrap(inline(s), 92)
+            o += ["- " + ls[0]] + ["  " + l for l in ls[1:]]
         else:
             o += wrap(inline(s)) + [""]
+        prev = kind
     return "\n".join(o).rstrip() + "\n"
 
 
@@ -187,7 +207,9 @@ def render_typ(blocks, lang: str) -> str:
             part = re.sub(r"(?<!\*)\*(?!\*)([^*\n]+?)(?<!\*)\*(?!\*)", r"#emph[\1]", part)
             part = re.sub(r"_(.+?)_", r"#emph[\1]", part)
             out.append(part)
-        return "".join(out)
+        joined = "".join(out)
+        # `#strong[…](…)` 는 함수 호출로 이어 읽히므로 세미콜론으로 식을 끊는다(세미콜론은 출력되지 않는다).
+        return re.sub(r"(#(?:strong|emph)\[[^\[\]]*\])(?=[(\[])", r"\1;", joined)
 
     o = [f"// NEPLv1 — {lang}. 생성물: tools/render.py 가 NEPL-v1.{lang}.md 에서 만든다. 손으로 고치지 않는다.",
          '#set page(paper: "a4", margin: (x: 2.2cm, y: 2.4cm))',
@@ -197,7 +219,10 @@ def render_typ(blocks, lang: str) -> str:
          '#show heading.where(level: 1): set text(size: 15pt)',
          '#show heading.where(level: 2): set text(size: 11.5pt)',
          ""]
+    prev = None
     for kind, s in blocks:
+        if prev == "li" and kind != "li":
+            o += [""]
         if kind == "h1":
             o += [f"= {inline(s)}", ""]
         elif kind == "h2":
@@ -207,9 +232,71 @@ def render_typ(blocks, lang: str) -> str:
         elif kind == "code":
             body = s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
             o += [f'#block(width: 100%, fill: luma(245), inset: 8pt, radius: 2pt, raw("{body}"))', ""]
+        elif kind == "li":
+            o += [f"- {inline(s)}"]
         else:
             o += [inline(s), ""]
+        prev = kind
     return "\n".join(o).rstrip() + "\n"
+
+
+# ---------- 언어 간 대조 ----------
+# 번역본이 정본에 없는 실체 조항을 만들거나 조항을 빠뜨리는 것을 막는다.
+HEAD_NUM_RE = re.compile(r"^(\d+)\.")
+CLAUSE_RE = re.compile(r"^(\d+\.\d+(?:\.\d+)*)\s")
+ITEM_RE = re.compile(r"^\(([a-z])\)")
+# 번역본에는 제10.3조가 요구하는 「이것은 번역이며 한국어본이 정본이다」 한 문단이 더 있다.
+TRANSLATION_NOTICE_PARAGRAPHS = 1
+
+
+def structure(blocks) -> dict:
+    heads: list[str] = []
+    clauses: list[str] = []
+    items: list[str] = []
+    counts = {"h1": 0, "h2": 0, "p": 0, "li": 0, "code": 0, "hr": 0}
+    for kind, s in blocks:
+        counts[kind] = counts.get(kind, 0) + 1
+        if kind == "h2":
+            m = HEAD_NUM_RE.match(plain_inline(s))
+            heads.append(m.group(1) if m else "annex")
+        elif kind == "p":
+            t = plain_inline(s)
+            m = CLAUSE_RE.match(t)
+            if m:
+                clauses.append(m.group(1))
+                continue
+            m = ITEM_RE.match(t)
+            if m:
+                items.append(m.group(1))
+    return {"heads": heads, "clauses": clauses, "items": items, "counts": counts}
+
+
+def first_diff(a: list[str], b: list[str]) -> str:
+    for i, (x, y) in enumerate(zip(a, b)):
+        if x != y:
+            return f"{i + 1}번째: 정본 {x!r} ↔ 번역 {y!r}"
+    return f"길이: 정본 {len(a)} ↔ 번역 {len(b)}" + (
+        f" (모자람 {b[len(a):] if len(b) > len(a) else a[len(b):]})" if len(a) != len(b) else "")
+
+
+def cross_language(structs: dict[str, dict]) -> list[str]:
+    ref = structs["ko"]
+    errs: list[str] = []
+    for lang in LANGS:
+        if lang == "ko":
+            continue
+        cur = structs[lang]
+        for key, label in (("heads", "절 번호"), ("clauses", "조항 번호"), ("items", "각 목 기호")):
+            if cur[key] != ref[key]:
+                errs.append(f"{lang}: {label} 불일치 — {first_diff(ref[key], cur[key])}")
+        for key in ("h1", "h2", "li", "code", "hr"):
+            if cur["counts"][key] != ref["counts"][key]:
+                errs.append(f"{lang}: {key} 블록 수 불일치 — 정본 {ref['counts'][key]} ↔ 번역 {cur['counts'][key]}")
+        want_p = ref["counts"]["p"] + TRANSLATION_NOTICE_PARAGRAPHS
+        if cur["counts"]["p"] != want_p:
+            errs.append(
+                f"{lang}: 문단 수 불일치 — 정본 {ref['counts']['p']} + 번역 고지 1 = {want_p} 이어야 하는데 {cur['counts']['p']}")
+    return errs
 
 
 def main() -> int:
@@ -218,12 +305,14 @@ def main() -> int:
     args = ap.parse_args()
 
     stale = []
+    structs: dict[str, dict] = {}
     for lang in LANGS:
         src = LIC / f"{STEM}.{lang}.md"
         if not src.exists():
             print(f"FAIL 정본 없음: {src.relative_to(ROOT)}")
             return 1
         blocks = parse(src.read_text(encoding="utf8"))
+        structs[lang] = structure(blocks)
         outs = {
             f"{STEM}.{lang}.txt": render_txt(blocks),
             f"{STEM}.{lang}.rst": render_rst(blocks),
@@ -260,6 +349,8 @@ def main() -> int:
             if p2.exists() and body_only(p2.read_text(encoding="utf8")) != ref:
                 mismatch.append(f"{lang}.{ext}")
 
+    cross = cross_language(structs)
+
     if args.check:
         if stale:
             print("FAIL 정본과 어긋난 생성물:", ", ".join(stale))
@@ -268,9 +359,24 @@ def main() -> int:
         if mismatch:
             print("FAIL 형식 간 문면 불일치:", ", ".join(mismatch))
             return 1
-        print("license_render check: OK (12개 파일 · 형식 간 문면 일치)")
-    elif mismatch:
-        print("경고 — 형식 간 문면 불일치:", ", ".join(mismatch))
+        if cross:
+            print("FAIL 언어 간 구조 불일치:")
+            for e in cross:
+                print("  -", e)
+            return 1
+        k = structs["ko"]
+        print(f"license_render check: OK (12개 파일 · 형식 간 문면 일치 · 언어 간 구조 일치 — "
+              f"절 {len(k['heads'])} · 조항 {len(k['clauses'])} · 목 {len(k['items'])})")
+    else:
+        if mismatch:
+            print("경고 — 형식 간 문면 불일치:", ", ".join(mismatch))
+        if cross:
+            print("경고 — 언어 간 구조 불일치:")
+            for e in cross:
+                print("  -", e)
+        else:
+            k = structs["ko"]
+            print(f"언어 간 대조 OK — 절 {len(k['heads'])} · 조항 {len(k['clauses'])} · 목 {len(k['items'])}")
     return 0
 
 

@@ -13,6 +13,9 @@ Version              NEPLv1
                      NB: no option such as "or any later version" is provided
                      (clause 10.2). To move to a new version, amend this
                      Notice and distribute anew.
+Extensions           <none>  |  <e.g. NEPLv1-EP>
+                     NB: optional (clause 10.4). Only Extensions named
+                     here bind the work.
 Full licence text    <path>   e.g. LICENSES/NEPL-v1.ko.md
                      (enclose as many languages/formats as you like)
 

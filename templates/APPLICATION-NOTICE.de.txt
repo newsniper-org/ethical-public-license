@@ -14,6 +14,9 @@ Fassung               NEPLv1
                       Hinweis: Eine Wahlmöglichkeit wie „oder eine spätere
                       Fassung“ gibt es nicht (Ziffer 10.2). Für einen Wechsel
                       ist dieser Hinweis zu ändern und neu zu verbreiten.
+Erweiterungen         <keine>  |  <z. B. NEPLv1-EP>
+                      Hinweis: optional (Ziffer 10.4). Nur hier benannte
+                      Erweiterungen binden das Werk.
 Volltext der Lizenz   <Pfad>   z. B. LICENSES/NEPL-v1.ko.md
                       (beliebig viele Sprachen/Formate beifügbar)
 

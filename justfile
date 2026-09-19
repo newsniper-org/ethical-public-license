@@ -12,11 +12,13 @@ render:
 check:
     python3 tools/render.py --check
 
-# 네 언어 .typ 를 PDF 로 (폰트 경로는 로컬 기준)
+# 두 문서 × 네 언어 .typ 를 PDF 로 (폰트 경로는 로컬 기준)
 pdf:
     mkdir -p build
-    for l in ko en ja de; do \
-      typst compile --font-path /usr/share/fonts/noto-cjk --font-path /usr/share/fonts/nanum \
-        "NEPL-v1.$l.typ" "build/NEPL-v1.$l.pdf"; \
+    for d in NEPL-v1 NEPL-v1-EP; do \
+      for l in ko en ja de; do \
+        typst compile --font-path /usr/share/fonts/noto-cjk --font-path /usr/share/fonts/nanum \
+          "$d.$l.typ" "build/$d.$l.pdf"; \
+      done; \
     done
     @ls build/

@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""NEPLv1 라이선스 텍스트를 한 정본(.md)에서 네 형식으로 뽑는다.
+"""NEPL 라이선스 문서들을 정본(.md)에서 네 형식으로 뽑는다.
 
-정본:  NEPL-v1.{ko,en,ja,de}.md   (CommonMark)
+정본:  NEPL-v1.{ko,en,ja,de}.md · NEPL-v1-EP.{ko,en,ja,de}.md   (CommonMark)
 생성물: 같은 이름의 .txt (UTF-8 plain text) · .rst (reStructuredText) · .typ (Typst >= 0.14)
 
 라이선스 제12.1조가 「형식은 규정하지 않는다」고 하므로 형식은 자유이나,
 기본 템플릿은 네 형식을 함께 제공한다 — 문면은 넷이 같아야 한다(이 스크립트가 그것을 보장한다).
 
-    python3 tools/render.py            # 12개 파일을 쓴다
-    python3 tools/render.py --check    # 생성물이 정본과 맞는지만 본다(0/1)
+    python3 tools/render.py                    # 전부 다시 만든다
+    python3 tools/render.py --check            # 검사만 한다(0/1)
+    python3 tools/render.py --doc NEPL-v1-EP   # 한 문서만
 """
 from __future__ import annotations
 
@@ -20,7 +21,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 LIC = ROOT          # 정본·생성물 모두 저장소 최상위에 둔다
 LANGS = ("ko", "en", "ja", "de")
-STEM = "NEPL-v1"
+# 정본 문서들 — 각각 4언어 × 4형식.
+DOCS = ("NEPL-v1", "NEPL-v1-EP")
 
 
 # ---------- 공통 파서 ----------
@@ -242,8 +244,8 @@ def render_typ(blocks, lang: str) -> str:
 
 # ---------- 언어 간 대조 ----------
 # 번역본이 정본에 없는 실체 조항을 만들거나 조항을 빠뜨리는 것을 막는다.
-HEAD_NUM_RE = re.compile(r"^(\d+)\.")
-CLAUSE_RE = re.compile(r"^(\d+\.\d+(?:\.\d+)*)\s")
+HEAD_NUM_RE = re.compile(r"^E?(\d+)\.")
+CLAUSE_RE = re.compile(r"^(E?\d+\.\d+(?:\.\d+)*)\s")
 ITEM_RE = re.compile(r"^\(([a-z])\)")
 # 번역본에는 제10.3조가 요구하는 「이것은 번역이며 한국어본이 정본이다」 한 문단이 더 있다.
 TRANSLATION_NOTICE_PARAGRAPHS = 1
@@ -299,85 +301,98 @@ def cross_language(structs: dict[str, dict]) -> list[str]:
     return errs
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--check", action="store_true", help="생성물이 정본과 맞는지만 확인")
-    args = ap.parse_args()
-
-    stale = []
+def process(stem: str, check: bool) -> tuple[list[str], list[str], list[str], dict]:
+    """한 문서(4언어 × 4형식)를 쓰거나 검사한다. (stale, mismatch, cross, ko구조)"""
+    stale: list[str] = []
     structs: dict[str, dict] = {}
     for lang in LANGS:
-        src = LIC / f"{STEM}.{lang}.md"
+        src = LIC / f"{stem}.{lang}.md"
         if not src.exists():
-            print(f"FAIL 정본 없음: {src.relative_to(ROOT)}")
-            return 1
+            raise SystemExit(f"FAIL 정본 없음: {src.relative_to(ROOT)}")
         blocks = parse(src.read_text(encoding="utf8"))
         structs[lang] = structure(blocks)
         outs = {
-            f"{STEM}.{lang}.txt": render_txt(blocks),
-            f"{STEM}.{lang}.rst": render_rst(blocks),
-            f"{STEM}.{lang}.typ": render_typ(blocks, lang),
+            f"{stem}.{lang}.txt": render_txt(blocks),
+            f"{stem}.{lang}.rst": render_rst(blocks),
+            f"{stem}.{lang}.typ": render_typ(blocks, lang),
         }
         for name, text in outs.items():
-            p = LIC / name
-            if args.check:
-                if not p.exists() or p.read_text(encoding="utf8") != text:
+            q = LIC / name
+            if check:
+                if not q.exists() or q.read_text(encoding="utf8") != text:
                     stale.append(name)
             else:
-                p.write_text(text, encoding="utf8")
-        if not args.check:
-            print(f"[{lang}] {len(outs)} formats ← {src.name} ({len(blocks)} blocks)")
+                q.write_text(text, encoding="utf8")
+        if not check:
+            print(f"[{stem} · {lang}] {len(outs)} formats ← {src.name} ({len(blocks)} blocks)")
 
     # 형식이 달라도 문면은 같아야 한다 — 구조 표지를 걷어내고 대조한다.
     def body_only(text: str) -> str:
         lines = []
         for l in text.split("\n"):
-            s = l.strip()
-            if not s or set(s) <= set("=-.:_~^\"") or s == "::":
+            t = l.strip()
+            if not t or set(t) <= set("=-.:_~^\"") or t == "::":
                 continue
-            lines.append(s)
+            lines.append(t)
         joined = " ".join(lines)
         joined = re.sub(r"#strong\[|#emph\[|#raw\(\"|\"\)|#line\(length: 100%[^)]*\)", "", joined)
         joined = re.sub(r"^//.*| #set [^\n]*| #show [^\n]*|#block\([^)]*", "", joined)
         return re.sub(r"[\s`*_#=\\\[\]-]", "", joined)
 
-    mismatch = []
+    mismatch: list[str] = []
     for lang in LANGS:
-        ref = body_only((LIC / f"{STEM}.{lang}.md").read_text(encoding="utf8"))
+        ref = body_only((LIC / f"{stem}.{lang}.md").read_text(encoding="utf8"))
         for ext in ("txt", "rst"):
-            p2 = LIC / f"{STEM}.{lang}.{ext}"
-            if p2.exists() and body_only(p2.read_text(encoding="utf8")) != ref:
-                mismatch.append(f"{lang}.{ext}")
+            q = LIC / f"{stem}.{lang}.{ext}"
+            if q.exists() and body_only(q.read_text(encoding="utf8")) != ref:
+                mismatch.append(f"{stem}.{lang}.{ext}")
 
-    cross = cross_language(structs)
+    return stale, mismatch, cross_language(structs), structs["ko"]
 
-    if args.check:
-        if stale:
-            print("FAIL 정본과 어긋난 생성물:", ", ".join(stale))
-            print("  python3 tools/render.py 로 다시 만든다")
-            return 1
-        if mismatch:
-            print("FAIL 형식 간 문면 불일치:", ", ".join(mismatch))
-            return 1
-        if cross:
-            print("FAIL 언어 간 구조 불일치:")
-            for e in cross:
-                print("  -", e)
-            return 1
-        k = structs["ko"]
-        print(f"license_render check: OK (12개 파일 · 형식 간 문면 일치 · 언어 간 구조 일치 — "
-              f"절 {len(k['heads'])} · 조항 {len(k['clauses'])} · 목 {len(k['items'])})")
-    else:
-        if mismatch:
-            print("경고 — 형식 간 문면 불일치:", ", ".join(mismatch))
-        if cross:
-            print("경고 — 언어 간 구조 불일치:")
-            for e in cross:
-                print("  -", e)
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--check", action="store_true", help="생성물이 정본과 맞는지만 확인")
+    ap.add_argument("--doc", action="append", choices=DOCS,
+                    help="이 문서만 처리한다(여러 번 쓸 수 있다). 기본은 전부")
+    args = ap.parse_args()
+    docs = tuple(args.doc) if args.doc else DOCS
+
+    bad = False
+    for stem in docs:
+        stale, mismatch, cross, ko = process(stem, args.check)
+        label = f"{stem}"
+        if args.check:
+            if stale:
+                print(f"FAIL [{label}] 정본과 어긋난 생성물:", ", ".join(stale))
+                print("  python3 tools/render.py 로 다시 만든다")
+                bad = True
+                continue
+            if mismatch:
+                print(f"FAIL [{label}] 형식 간 문면 불일치:", ", ".join(mismatch))
+                bad = True
+                continue
+            if cross:
+                print(f"FAIL [{label}] 언어 간 구조 불일치:")
+                for e in cross:
+                    print("  -", e)
+                bad = True
+                continue
+            print(f"[{label}] OK — 12개 파일 · 형식 간 문면 일치 · 언어 간 구조 일치 "
+                  f"(절 {len(ko['heads'])} · 조항 {len(ko['clauses'])} · 목 {len(ko['items'])})")
         else:
-            k = structs["ko"]
-            print(f"언어 간 대조 OK — 절 {len(k['heads'])} · 조항 {len(k['clauses'])} · 목 {len(k['items'])}")
-    return 0
+            if mismatch:
+                print(f"경고 [{label}] 형식 간 문면 불일치:", ", ".join(mismatch))
+            if cross:
+                print(f"경고 [{label}] 언어 간 구조 불일치:")
+                for e in cross:
+                    print("  -", e)
+            else:
+                print(f"[{label}] 언어 간 대조 OK — "
+                      f"절 {len(ko['heads'])} · 조항 {len(ko['clauses'])} · 목 {len(ko['items'])}")
+    if args.check and not bad:
+        print(f"license_render check: OK ({len(docs)}개 문서 · {len(docs) * 12}개 파일)")
+    return 1 if bad else 0
 
 
 if __name__ == "__main__":
